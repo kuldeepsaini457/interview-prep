@@ -2135,4 +2135,2346 @@ In production, constructors should perform only essential initialization. Comple
 * Garbage Collection
 * Constructor Chaining
 
+# Q51. Can object exist without reference?
+
+### Answer
+
+Yes. An object can exist without any reference variable pointing to it.
+
+Such an object becomes **unreachable** and is eligible for **garbage collection**.
+
+Example:
+
+```java
+new Employee();
+```
+
+Here, an `Employee` object is created, but no reference is stored. Once the statement completes, the object is no longer reachable and can be reclaimed by the Garbage Collector.
+
+Another common case is when all references to an object are removed:
+
+```java
+Employee emp = new Employee();
+emp = null;
+```
+
+If no other references exist, the object becomes eligible for garbage collection.
+
+**Important:** Eligible for garbage collection does **not** mean it is immediately removed. The JVM decides when to reclaim the memory.
+
+### Expected Follow-up Questions
+
+* When does an object become eligible for garbage collection?
+* Is garbage collection immediate?
+* Can an unreachable object become reachable again?
+
+### Common Mistakes
+
+* Saying the object is deleted immediately.
+* Confusing "eligible for GC" with "GC has already run."
+
+### Interview Keywords
+
+* Reachability
+* Garbage Collection
+* Heap
+* Eligible for GC
+
+---
+
+# Q52. Can multiple references point to same object?
+
+### Answer
+
+Yes. Multiple reference variables can point to the same object in memory.
+
+Example:
+
+```java
+Employee emp1 = new Employee();
+Employee emp2 = emp1;
+```
+
+Both `emp1` and `emp2` refer to the same object on the heap.
+
+So, if one reference modifies the object's state, the change is visible through the other reference as well.
+
+```java
+emp1.setName("Alice");
+
+System.out.println(emp2.getName()); // Alice
+```
+
+This is an important concept because assigning one reference to another does **not** create a copy of the object.
+
+### Expected Follow-up Questions
+
+* Does assignment create a new object?
+* How do you create an actual copy?
+* What happens if one reference becomes `null`?
+
+### Common Mistakes
+
+* Assuming `emp2 = emp1` creates a copy.
+* Forgetting both references share the same object.
+
+### Interview Keywords
+
+* Reference Variable
+* Shared Object
+* Heap
+* Object Identity
+
+---
+
+# Q53. Difference between shallow copy and deep copy.
+
+### Answer
+
+A **shallow copy** copies the object's fields, but nested object references are shared. A **deep copy** creates copies of both the object and all nested mutable objects.
+
+Example:
+
+```java
+class Employee {
+    Address address;
+}
+```
+
+**Shallow Copy**
+
+```text
+Employee1 ─────► Address
+Employee2 ─────┘
+```
+
+Both employees share the same `Address`.
+
+**Deep Copy**
+
+```text
+Employee1 ─────► Address1
+Employee2 ─────► Address2
+```
+
+Each employee has its own copy of the `Address`.
+
+Use:
+
+* **Shallow copy** when shared state is acceptable.
+* **Deep copy** when complete independence is required.
+
+### Expected Follow-up Questions
+
+* Which copy does `clone()` perform?
+* When do you need deep copying?
+* What are the performance implications?
+
+### Common Mistakes
+
+* Assuming copying a reference copies the object.
+* Forgetting nested mutable objects in deep copies.
+
+### Interview Keywords
+
+* Shallow Copy
+* Deep Copy
+* Object Graph
+* Mutable Objects
+
+---
+
+# Q54. How would you clone an object?
+
+### Answer
+
+In modern Java, I generally avoid using `Cloneable`. Instead, I prefer one of these approaches:
+
+1. **Copy constructor** (most common)
+2. **Factory method**
+3. **Builder pattern** (for complex objects)
+
+Example using a copy constructor:
+
+```java
+class Employee {
+    private String name;
+
+    Employee(Employee other) {
+        this.name = other.name;
+    }
+}
+```
+
+This approach is:
+
+* Explicit
+* Easy to understand
+* Easier to maintain
+* Doesn't rely on the limitations of `Cloneable`
+
+I would use `clone()` only if I'm working with legacy code.
+
+### Expected Follow-up Questions
+
+* Why is `Cloneable` discouraged?
+* What does `super.clone()` do?
+* Which approach do you prefer?
+
+### Common Mistakes
+
+* Recommending `Cloneable` for new code.
+* Forgetting to copy nested mutable objects.
+
+### Interview Keywords
+
+* Copy Constructor
+* Builder Pattern
+* Cloneable
+* Deep Copy
+
+---
+
+# Q55. Problems with `Cloneable` interface?
+
+### Answer
+
+`Cloneable` has several design issues, which is why it's generally discouraged in modern Java.
+
+Some major problems are:
+
+* It performs a **shallow copy** by default.
+* Nested mutable objects are not cloned automatically.
+* `clone()` is `protected` in `Object`, making the API awkward.
+* It bypasses constructors, so object initialization logic is skipped.
+* It requires handling `CloneNotSupportedException`.
+
+Because of these limitations, Java developers typically prefer:
+
+* Copy constructors
+* Factory methods
+* Builder-based copying
+
+These approaches are clearer and easier to maintain.
+
+### Expected Follow-up Questions
+
+* Why does `clone()` bypass constructors?
+* Why is shallow copying dangerous?
+* What is the recommended alternative?
+
+### Common Mistakes
+
+* Assuming `clone()` performs deep copying.
+* Forgetting that constructors are not invoked.
+
+### Interview Keywords
+
+* Cloneable
+* Shallow Copy
+* Copy Constructor
+* CloneNotSupportedException
+
+---
+
+# Q56. What is `static` keyword?
+
+### Answer
+
+The `static` keyword makes a member belong to the **class** rather than to individual objects.
+
+It can be applied to:
+
+* Variables
+* Methods
+* Blocks
+* Nested classes
+
+Example:
+
+```java
+class Employee {
+    static String company = "ABC";
+}
+```
+
+Here, `company` is shared by all `Employee` objects.
+
+Static members are created when the class is loaded and exist only once per class loader.
+
+They are commonly used for:
+
+* Constants
+* Utility methods
+* Shared configuration
+* Factory methods
+
+### Expected Follow-up Questions
+
+* When are static members created?
+* Where are static variables stored?
+* Can static methods be overridden?
+
+### Common Mistakes
+
+* Thinking each object has its own copy of static variables.
+* Accessing static members through object references.
+
+### Interview Keywords
+
+* Class Member
+* Static Variable
+* Static Method
+* Class Loading
+
+---
+
+# Q57. Static variable vs instance variable.
+
+### Answer
+
+A **static variable** belongs to the class, while an **instance variable** belongs to each object.
+
+| Static Variable              | Instance Variable                |
+| ---------------------------- | -------------------------------- |
+| One copy per class           | One copy per object              |
+| Shared across objects        | Unique for every object          |
+| Created during class loading | Created during object creation   |
+| Accessed using class name    | Accessed through object instance |
+
+Example:
+
+```java
+class Employee {
+    static String company = "ABC";
+    String name;
+}
+```
+
+Every employee shares the same `company`, but each employee has its own `name`.
+
+### Expected Follow-up Questions
+
+* Where are static variables stored?
+* Can instance methods access static variables?
+* Are static variables thread-safe?
+
+### Common Mistakes
+
+* Using static variables for object-specific data.
+* Assuming static variables are automatically thread-safe.
+
+### Interview Keywords
+
+* Static Variable
+* Instance Variable
+* Class Loading
+* Shared State
+
+---
+
+# Q58. Static block use cases.
+
+### Answer
+
+A static block is used to perform **one-time class initialization** when the class is loaded.
+
+Example:
+
+```java
+class Config {
+
+    static {
+        System.out.println("Loading configuration...");
+    }
+}
+```
+
+Typical use cases include:
+
+* Initializing static fields.
+* Loading configuration.
+* Registering drivers or services.
+* Performing one-time setup before objects are created.
+
+Today, static blocks are used less frequently because dependency injection frameworks like Spring manage initialization more cleanly.
+
+### Expected Follow-up Questions
+
+* When does a static block execute?
+* Can multiple static blocks exist?
+* What happens if a static block throws an exception?
+
+### Common Mistakes
+
+* Putting business logic inside static blocks.
+* Assuming they execute every time an object is created.
+
+### Interview Keywords
+
+* Static Block
+* Class Initialization
+* Class Loading
+* One-time Initialization
+
+---
+
+# Q59. When are static blocks executed?
+
+### Answer
+
+Static blocks execute **once**, when the class is initialized by the JVM.
+
+This typically happens when:
+
+* The class is first actively used.
+* A static method is called.
+* A static field is accessed.
+* An object of the class is created (if the class hasn't already been initialized).
+
+If multiple static blocks exist, they execute in the order they appear in the class.
+
+Static initialization happens before any constructor is executed.
+
+### Expected Follow-up Questions
+
+* What triggers class initialization?
+* Can a static block execute multiple times?
+* What is the order of static initialization?
+
+### Common Mistakes
+
+* Saying static blocks execute for every object.
+* Confusing class loading with object creation.
+
+### Interview Keywords
+
+* Class Initialization
+* Static Block
+* JVM
+* Class Loader
+
+---
+
+# Q60. Can static method access instance variables?
+
+### Answer
+
+No. A static method cannot directly access instance variables because it belongs to the class, not to any specific object.
+
+Example:
+
+```java
+class Employee {
+
+    String name;
+
+    static void printName() {
+        // name; // Compilation error
+    }
+}
+```
+
+A static method has no `this` reference, so it doesn't know which object's instance variable should be accessed.
+
+However, if an object reference is available, the static method can access the instance variables through that object.
+
+```java
+static void print(Employee emp) {
+    System.out.println(emp.name);
+}
+```
+
+### Expected Follow-up Questions
+
+* Why is `this` unavailable in static methods?
+* Can an instance method access static members?
+* Why are static methods resolved at compile time?
+
+### Common Mistakes
+
+* Trying to access instance fields directly from static methods.
+* Assuming static methods have access to object state.
+
+### Interview Keywords
+
+* Static Method
+* Instance Variable
+* `this`
+* Class Context
+
+# Q61. Can instance method access static members?
+
+### Answer
+
+Yes. An instance method can directly access both **instance members** and **static members**.
+
+This is because an instance method is invoked on an object, so it has access to:
+
+* The object's state (`this`)
+* Class-level members (`static`)
+
+Example:
+
+```java
+class Employee {
+
+    static String company = "ABC";
+    String name;
+
+    void printDetails() {
+        System.out.println(name);      // Instance variable
+        System.out.println(company);   // Static variable
+    }
+}
+```
+
+Although static members can be accessed through an object, it's considered a best practice to access them using the **class name** because they belong to the class, not a particular object.
+
+```java
+System.out.println(Employee.company);
+```
+
+### Expected Follow-up Questions
+
+* Can a static method access instance members?
+* Why is accessing static members via the class name recommended?
+* Does an instance method have access to `this`?
+
+### Common Mistakes
+
+* Thinking instance methods cannot access static members.
+* Accessing static members through objects instead of the class.
+
+### Interview Keywords
+
+* Instance Method
+* Static Member
+* `this`
+* Class Member
+
+---
+
+# Q62. Can constructors be static?
+
+### Answer
+
+No. Constructors cannot be `static`.
+
+A constructor is responsible for initializing an object, while a static member belongs to the class and exists even before any object is created.
+
+Since constructors are invoked during object creation, making them static would not make sense.
+
+If you need object creation logic that doesn't directly use a constructor, use a **static factory method** instead.
+
+Example:
+
+```java
+class Employee {
+
+    private Employee() {}
+
+    public static Employee create() {
+        return new Employee();
+    }
+}
+```
+
+Static factory methods provide more flexibility than constructors, such as meaningful names or returning cached instances.
+
+### Expected Follow-up Questions
+
+* Why can't constructors be static?
+* What are static factory methods?
+* When should you use factory methods over constructors?
+
+### Common Mistakes
+
+* Confusing constructors with static initialization blocks.
+* Assuming constructors belong to the class.
+
+### Interview Keywords
+
+* Constructor
+* Static Factory Method
+* Object Creation
+* Class Initialization
+
+---
+
+# Q63. When should utility classes use static methods?
+
+### Answer
+
+Utility classes should use static methods when the methods are **stateless**, don't depend on object state, and provide reusable functionality.
+
+Examples include:
+
+* `Math`
+* `Collections`
+* `Objects`
+* `Arrays`
+
+Example:
+
+```java
+class StringUtils {
+
+    public static boolean isBlank(String str) {
+        return str == null || str.trim().isEmpty();
+    }
+}
+```
+
+Since these methods don't rely on instance variables, creating objects would be unnecessary overhead.
+
+To prevent instantiation, utility classes are usually declared `final` with a private constructor.
+
+```java
+final class StringUtils {
+
+    private StringUtils() {}
+
+    public static boolean isBlank(String str) {
+        return str == null || str.trim().isEmpty();
+    }
+}
+```
+
+### Expected Follow-up Questions
+
+* Why use a private constructor?
+* When should methods not be static?
+* Can utility classes be inherited?
+
+### Common Mistakes
+
+* Making methods static when they require object state.
+* Allowing instantiation of utility classes.
+
+### Interview Keywords
+
+* Utility Class
+* Static Method
+* Stateless
+* Private Constructor
+
+---
+
+# Q64. Explain dynamic method dispatch.
+
+### Answer
+
+Dynamic method dispatch is the mechanism by which the JVM decides **at runtime** which overridden method to execute based on the **actual object type**, not the reference type.
+
+Example:
+
+```java
+class Animal {
+    void sound() {
+        System.out.println("Animal");
+    }
+}
+
+class Dog extends Animal {
+    @Override
+    void sound() {
+        System.out.println("Bark");
+    }
+}
+
+Animal animal = new Dog();
+animal.sound();   // Bark
+```
+
+Although the reference type is `Animal`, the JVM invokes `Dog`'s implementation because the actual object is a `Dog`.
+
+This is the foundation of runtime polymorphism and is widely used in frameworks like Spring through interfaces and dependency injection.
+
+### Expected Follow-up Questions
+
+* How does the JVM decide which method to call?
+* Is this compile-time or runtime binding?
+* Does it apply to static methods?
+
+### Common Mistakes
+
+* Thinking the reference type determines the method.
+* Confusing dynamic dispatch with method overloading.
+
+### Interview Keywords
+
+* Dynamic Dispatch
+* Runtime Polymorphism
+* Method Overriding
+* Late Binding
+
+---
+
+# Q65. How does JVM decide which overridden method to call?
+
+### Answer
+
+The JVM decides based on the **actual runtime type of the object**, not the reference type.
+
+Example:
+
+```java
+Animal animal = new Dog();
+animal.sound();
+```
+
+At compile time, the compiler verifies that `sound()` exists in the `Animal` reference type.
+
+At runtime, the JVM sees that the actual object is `Dog` and invokes `Dog.sound()`.
+
+Internally, the JVM uses method lookup mechanisms (often implemented using virtual method tables or similar optimizations) to efficiently resolve overridden methods.
+
+As developers, the important takeaway is that overridden methods are resolved at **runtime**, enabling polymorphism.
+
+### Expected Follow-up Questions
+
+* What is a virtual method table (vtable)?
+* Is this early binding or late binding?
+* Does this affect performance?
+
+### Common Mistakes
+
+* Saying the compiler decides overridden methods.
+* Confusing compile-time checking with runtime dispatch.
+
+### Interview Keywords
+
+* Runtime Type
+* Virtual Method
+* Dynamic Dispatch
+* Late Binding
+
+---
+
+# Q66. Difference between early binding and late binding.
+
+### Answer
+
+**Early binding** happens at compile time, while **late binding** happens at runtime.
+
+| Early Binding      | Late Binding                |
+| ------------------ | --------------------------- |
+| Compile time       | Runtime                     |
+| Method overloading | Method overriding           |
+| Static methods     | Instance overridden methods |
+| Final methods      | Runtime polymorphic methods |
+
+Examples of **early binding**:
+
+* Method overloading
+* Static methods
+* Private methods
+* Final methods
+
+Example of **late binding**:
+
+```java
+Animal animal = new Dog();
+animal.sound();
+```
+
+The compiler only verifies that `sound()` exists. The JVM chooses the implementation at runtime.
+
+### Expected Follow-up Questions
+
+* Which methods use early binding?
+* Why are static methods early bound?
+* How is late binding implemented?
+
+### Common Mistakes
+
+* Saying all instance methods use late binding.
+* Forgetting that `final` methods are early bound.
+
+### Interview Keywords
+
+* Early Binding
+* Late Binding
+* Compile Time
+* Runtime
+* Dynamic Dispatch
+
+---
+
+# Q67. How does Java achieve runtime polymorphism internally?
+
+### Answer
+
+Java achieves runtime polymorphism through **method overriding** and **dynamic method dispatch**.
+
+When an overridden method is called:
+
+1. The compiler checks that the method exists in the reference type.
+2. At runtime, the JVM checks the actual object type.
+3. The JVM invokes the overridden implementation of that object.
+
+```java
+Animal animal = new Dog();
+animal.sound();
+```
+
+Although the reference type is `Animal`, the JVM executes `Dog.sound()`.
+
+Internally, JVM implementations optimize this using mechanisms such as virtual method tables, making method lookup very efficient.
+
+### Expected Follow-up Questions
+
+* What is dynamic dispatch?
+* Does overloading use runtime polymorphism?
+* What is a virtual method table?
+
+### Common Mistakes
+
+* Mixing up overloading and overriding.
+* Thinking the compiler chooses overridden methods.
+
+### Interview Keywords
+
+* Runtime Polymorphism
+* Method Overriding
+* Dynamic Dispatch
+* Virtual Method
+
+---
+
+# Q68. Can fields be polymorphic?
+
+### Answer
+
+No. Fields are **not polymorphic**.
+
+Only methods participate in runtime polymorphism.
+
+Example:
+
+```java
+class Parent {
+    String name = "Parent";
+}
+
+class Child extends Parent {
+    String name = "Child";
+}
+
+Parent obj = new Child();
+System.out.println(obj.name);
+```
+
+Output:
+
+```text
+Parent
+```
+
+Field access is resolved using the **reference type**, not the runtime object type.
+
+This is known as **field hiding**, not polymorphism.
+
+### Expected Follow-up Questions
+
+* Why aren't fields polymorphic?
+* What is field hiding?
+* How is it different from method overriding?
+
+### Common Mistakes
+
+* Assuming fields behave like overridden methods.
+* Expecting runtime dispatch for variables.
+
+### Interview Keywords
+
+* Field Hiding
+* Reference Type
+* Compile-time Resolution
+* Polymorphism
+
+---
+
+# Q69. What happens if subclass hides parent field?
+
+### Answer
+
+If a subclass declares a field with the same name as the parent, the child field **hides** the parent field.
+
+Example:
+
+```java
+class Parent {
+    String name = "Parent";
+}
+
+class Child extends Parent {
+    String name = "Child";
+}
+
+Child child = new Child();
+
+System.out.println(child.name);          // Child
+System.out.println(((Parent) child).name); // Parent
+```
+
+Unlike methods, fields are resolved using the **reference type**, so both fields exist independently.
+
+Field hiding is generally discouraged because it reduces readability and can cause confusion.
+
+### Expected Follow-up Questions
+
+* Is this overriding?
+* Why are fields resolved differently?
+* Should field hiding be used?
+
+### Common Mistakes
+
+* Calling field hiding "overriding."
+* Assuming the parent field disappears.
+
+### Interview Keywords
+
+* Field Hiding
+* Reference Type
+* Shadowing
+* Compile-time Resolution
+
+---
+
+# Q70. Method hiding vs method overriding.
+
+### Answer
+
+Method hiding applies to **static methods**, while method overriding applies to **instance methods**.
+
+| Method Hiding           | Method Overriding           |
+| ----------------------- | --------------------------- |
+| Static methods          | Instance methods            |
+| Compile-time resolution | Runtime resolution          |
+| Based on reference type | Based on actual object type |
+| No runtime polymorphism | Runtime polymorphism        |
+
+Example of **method hiding**:
+
+```java
+class Parent {
+    static void display() {
+        System.out.println("Parent");
+    }
+}
+
+class Child extends Parent {
+    static void display() {
+        System.out.println("Child");
+    }
+}
+
+Parent obj = new Child();
+obj.display(); // Parent
+```
+
+Example of **method overriding**:
+
+```java
+class Parent {
+    void display() {
+        System.out.println("Parent");
+    }
+}
+
+class Child extends Parent {
+    @Override
+    void display() {
+        System.out.println("Child");
+    }
+}
+
+Parent obj = new Child();
+obj.display(); // Child
+```
+
+As a best practice, avoid hiding static methods unless there's a compelling reason, since it can make code harder to understand.
+
+### Expected Follow-up Questions
+
+* Why can't static methods be overridden?
+* How does runtime polymorphism work?
+* What is dynamic dispatch?
+
+### Common Mistakes
+
+* Confusing method hiding with overriding.
+* Expecting runtime polymorphism for static methods.
+
+### Interview Keywords
+
+* Method Hiding
+* Method Overriding
+* Static Method
+* Runtime Polymorphism
+* Dynamic Dispatch
+
+# Q71. What is pass-by-value in Java?
+
+### Answer
+
+Java is **always pass-by-value**. The value that gets passed depends on the type:
+
+* For **primitive types**, the actual value is copied.
+* For **objects**, the **reference value** is copied—not the object itself.
+
+This means the called method receives its own copy of the reference. Both references point to the same object initially, so the object can be modified, but reassigning the reference inside the method does not affect the caller's reference.
+
+Example:
+
+```java id="0vwd2h"
+void update(Employee emp) {
+    emp.setName("Alice");   // Modifies the same object
+}
+
+Employee emp = new Employee();
+update(emp);
+```
+
+The object is modified because both references point to the same object.
+
+### Expected Follow-up Questions
+
+* Is Java pass-by-reference?
+* Why do people think Java is pass-by-reference?
+* What happens when an object reference is passed?
+
+### Common Mistakes
+
+* Saying Java supports pass-by-reference.
+* Confusing object references with objects.
+
+### Interview Keywords
+
+* Pass-by-Value
+* Object Reference
+* Primitive
+* Reference Copy
+
+---
+
+# Q72. Explain parameter passing using objects.
+
+### Answer
+
+When an object is passed to a method, Java copies the **reference value**, not the object.
+
+Example:
+
+```java id="s0vuz4"
+void changeName(Employee emp) {
+    emp.setName("Alice");
+}
+
+Employee emp = new Employee();
+changeName(emp);
+```
+
+Here:
+
+* The caller and the method have different reference variables.
+* Both references point to the same object.
+* Modifying the object's state is visible to the caller.
+
+However, reassigning the parameter only changes the local copy of the reference.
+
+### Expected Follow-up Questions
+
+* Why is the object modified?
+* Does Java copy the object?
+* What happens if the reference is reassigned?
+
+### Common Mistakes
+
+* Saying the object itself is passed.
+* Assuming assignment creates a new object.
+
+### Interview Keywords
+
+* Reference Copy
+* Pass-by-Value
+* Object State
+* Method Parameter
+
+---
+
+# Q73. Can you modify object passed as parameter?
+
+### Answer
+
+Yes. You can modify the object's state because both the caller and the method refer to the same object.
+
+Example:
+
+```java id="9n30y0"
+void update(Employee emp) {
+    emp.setName("Alice");
+}
+
+Employee emp = new Employee();
+update(emp);
+```
+
+After the method call, `emp.getName()` returns `"Alice"`.
+
+This works because the copied reference still points to the same object.
+
+### Expected Follow-up Questions
+
+* Why does the change reflect outside the method?
+* Is Java pass-by-reference?
+* What if the object is immutable?
+
+### Common Mistakes
+
+* Thinking Java passes the object itself.
+* Assuming object modification means pass-by-reference.
+
+### Interview Keywords
+
+* Object Mutation
+* Shared Object
+* Reference Copy
+* Pass-by-Value
+
+---
+
+# Q74. Can you reassign caller reference?
+
+### Answer
+
+No. Reassigning a parameter does **not** change the caller's reference because Java passes a **copy of the reference**.
+
+Example:
+
+```java id="qt3rbd"
+void change(Employee emp) {
+    emp = new Employee();
+}
+
+Employee emp = new Employee();
+change(emp);
+```
+
+After the method returns, the caller's `emp` still points to the original object.
+
+The reassignment only affects the local parameter inside the method.
+
+### Expected Follow-up Questions
+
+* Why doesn't reassignment affect the caller?
+* Can you replace the caller's object?
+* What if the method returns the new object?
+
+### Common Mistakes
+
+* Assuming parameter reassignment changes the caller's variable.
+* Confusing reassignment with object modification.
+
+### Interview Keywords
+
+* Reference Reassignment
+* Pass-by-Value
+* Local Variable
+* Reference Copy
+
+---
+
+# Q75. What is covariant return type?
+
+### Answer
+
+A **covariant return type** allows an overridden method to return a **subclass** of the original return type.
+
+Example:
+
+```java id="vmuh4r"
+class Animal {}
+
+class Dog extends Animal {}
+
+class Parent {
+    Animal create() {
+        return new Animal();
+    }
+}
+
+class Child extends Parent {
+    @Override
+    Dog create() {
+        return new Dog();
+    }
+}
+```
+
+Here, `Dog` is a subtype of `Animal`, so the override is valid.
+
+Covariant return types improve type safety and reduce the need for explicit casting.
+
+### Expected Follow-up Questions
+
+* Is this allowed in overloading?
+* Why is it useful?
+* What are the rules for overriding?
+
+### Common Mistakes
+
+* Thinking any return type is allowed.
+* Confusing covariant returns with overloaded methods.
+
+### Interview Keywords
+
+* Covariant Return Type
+* Method Overriding
+* Inheritance
+* Type Safety
+
+---
+
+# Q76. Explain initialization order in Java.
+
+### Answer
+
+The initialization order depends on whether we're talking about **class initialization** or **object creation**.
+
+For the **first object creation**, the order is:
+
+1. Parent static fields
+2. Parent static blocks
+3. Child static fields
+4. Child static blocks
+5. Parent instance fields
+6. Parent instance initialization blocks
+7. Parent constructor
+8. Child instance fields
+9. Child instance initialization blocks
+10. Child constructor
+
+Example:
+
+```java id="wsrkx8"
+class Parent {
+    static { System.out.println("Parent static"); }
+    { System.out.println("Parent instance"); }
+    Parent() { System.out.println("Parent constructor"); }
+}
+
+class Child extends Parent {
+    static { System.out.println("Child static"); }
+    { System.out.println("Child instance"); }
+    Child() { System.out.println("Child constructor"); }
+}
+```
+
+The **static initialization** happens only once per class, while the **instance initialization** happens every time an object is created.
+
+### Expected Follow-up Questions
+
+* When do static blocks execute?
+* What happens during object creation?
+* Why does the parent constructor execute first?
+
+### Common Mistakes
+
+* Forgetting that static initialization happens only once.
+* Mixing class initialization with object initialization.
+
+### Interview Keywords
+
+* Initialization Order
+* Static Block
+* Instance Initializer
+* Constructor Chaining
+* Class Loading
+
+---
+
+# Q77. Can constructor call overridden method?
+
+### Answer
+
+Yes. A constructor **can** call an overridable method, but it is considered a bad practice.
+
+Example:
+
+```java id="o38w3i"
+class Parent {
+
+    Parent() {
+        display();
+    }
+
+    void display() {}
+}
+
+class Child extends Parent {
+
+    private String name = "Alice";
+
+    @Override
+    void display() {
+        System.out.println(name);
+    }
+}
+```
+
+When a `Child` object is created, the `Parent` constructor executes first. At that point, the `Child` fields haven't been initialized yet, but due to runtime polymorphism, `Child.display()` is invoked.
+
+This may produce unexpected results because the child object is only partially initialized.
+
+### Expected Follow-up Questions
+
+* Why is this dangerous?
+* What gets initialized first?
+* Does runtime polymorphism still apply inside constructors?
+
+### Common Mistakes
+
+* Assuming child fields are initialized before the parent constructor.
+* Forgetting that overridden methods use runtime dispatch.
+
+### Interview Keywords
+
+* Constructor
+* Runtime Polymorphism
+* Partial Initialization
+* Dynamic Dispatch
+
+---
+
+# Q78. Why is calling overridable methods inside constructor dangerous?
+
+### Answer
+
+It's dangerous because the overridden method may execute **before the subclass has finished initializing its fields**.
+
+Example:
+
+```java id="ddqk7x"
+class Parent {
+
+    Parent() {
+        display();
+    }
+
+    void display() {}
+}
+
+class Child extends Parent {
+
+    private String message = "Hello";
+
+    @Override
+    void display() {
+        System.out.println(message);
+    }
+}
+```
+
+When the parent constructor calls `display()`, the `message` field is still at its default value (`null`) because the child initialization hasn't happened yet.
+
+This can lead to:
+
+* Incorrect behavior
+* `NullPointerException`
+* Using partially initialized objects
+
+A good practice is to avoid calling overridable methods from constructors. If initialization depends on subclass behavior, use factory methods or explicit initialization after construction.
+
+### Expected Follow-up Questions
+
+* What is partial initialization?
+* How can this be avoided?
+* Does Effective Java recommend avoiding this?
+
+### Common Mistakes
+
+* Assuming subclass fields are initialized first.
+* Calling business logic from constructors.
+
+### Interview Keywords
+
+* Partial Initialization
+* Constructor
+* Runtime Dispatch
+* Effective Java
+
+---
+
+# Q79. Difference between checked and unchecked exceptions.
+
+### Answer
+
+The main difference is whether the compiler enforces handling them.
+
+| Checked Exception                                 | Unchecked Exception       |
+| ------------------------------------------------- | ------------------------- |
+| Checked at compile time                           | Checked at runtime        |
+| Must be handled or declared                       | Handling is optional      |
+| Extend `Exception` (excluding `RuntimeException`) | Extend `RuntimeException` |
+
+Examples:
+
+**Checked:**
+
+```java id="2f0utp"
+IOException
+SQLException
+```
+
+**Unchecked:**
+
+```java id="l9s9j0"
+NullPointerException
+IllegalArgumentException
+ArithmeticException
+```
+
+In general:
+
+* Use **checked exceptions** for recoverable conditions that callers are expected to handle.
+* Use **unchecked exceptions** for programming errors or invalid API usage.
+
+### Expected Follow-up Questions
+
+* Why does Spring prefer runtime exceptions?
+* Should custom exceptions be checked or unchecked?
+* Can checked exceptions be ignored?
+
+### Common Mistakes
+
+* Saying checked exceptions occur only at compile time.
+* Catching generic `Exception` everywhere.
+
+### Interview Keywords
+
+* Checked Exception
+* RuntimeException
+* Exception Handling
+* Compile-time Checking
+
+---
+
+# Q80. Can interface contain private methods?
+
+### Answer
+
+Yes. Since **Java 9**, interfaces can contain **private methods**.
+
+They are mainly used to avoid duplicating logic shared by multiple `default` or `static` methods within the same interface.
+
+Example:
+
+```java id="q45tn5"
+interface Logger {
+
+    default void logInfo() {
+        format("INFO");
+    }
+
+    default void logError() {
+        format("ERROR");
+    }
+
+    private void format(String level) {
+        System.out.println(level);
+    }
+}
+```
+
+The private method is only accessible inside the interface itself and cannot be called by implementing classes.
+
+This feature improves code reuse without exposing helper methods as part of the interface's public API.
+
+### Expected Follow-up Questions
+
+* Why were private methods added?
+* Can implementing classes override them?
+* Can private methods be static?
+
+### Common Mistakes
+
+* Saying interfaces cannot contain private methods.
+* Thinking private interface methods are inherited.
+
+### Interview Keywords
+
+* Java 9
+* Interface
+* Private Method
+* Default Method
+* Code Reuse
+
+# Q81. Can interface contain static methods?
+
+### Answer
+
+Yes. Since **Java 8**, interfaces can contain **static methods**.
+
+Static methods belong to the interface itself, not to its implementations. They are typically used for utility methods that are closely related to the interface.
+
+Example:
+
+```java id="k3m7x1"
+interface Validator {
+
+    static boolean isValid(String input) {
+        return input != null && !input.isBlank();
+    }
+}
+```
+
+They are invoked using the interface name:
+
+```java id="p8v2zr"
+Validator.isValid("Java");
+```
+
+Unlike default methods, static interface methods are **not inherited** by implementing classes.
+
+### Expected Follow-up Questions
+
+* Why were static methods added to interfaces?
+* Can implementing classes override static interface methods?
+* What is the difference between static and default methods?
+
+### Common Mistakes
+
+* Assuming static interface methods are inherited.
+* Calling them through an implementation object.
+
+### Interview Keywords
+
+* Java 8
+* Static Method
+* Interface
+* Utility Method
+
+---
+
+# Q82. Default methods in interfaces.
+
+### Answer
+
+Default methods are methods in an interface that have a default implementation. They were introduced in **Java 8** using the `default` keyword.
+
+Example:
+
+```java id="f6w9qd"
+interface Vehicle {
+
+    default void start() {
+        System.out.println("Starting vehicle");
+    }
+}
+```
+
+Implementing classes can:
+
+* Use the default implementation as-is.
+* Override it with their own implementation.
+
+Default methods allow interfaces to evolve by adding new methods without breaking existing implementations.
+
+### Expected Follow-up Questions
+
+* Why were default methods introduced?
+* Can default methods be overridden?
+* What happens if two interfaces define the same default method?
+
+### Common Mistakes
+
+* Thinking default methods cannot have implementations.
+* Confusing default methods with abstract methods.
+
+### Interview Keywords
+
+* Java 8
+* Default Method
+* Interface Evolution
+* Backward Compatibility
+
+---
+
+# Q83. Why were default methods introduced?
+
+### Answer
+
+Default methods were introduced in **Java 8** to allow interfaces to evolve **without breaking existing implementations**.
+
+Before Java 8, adding a new method to an interface would force every implementing class to implement that method, breaking existing code.
+
+For example, many new methods were added to the Collections Framework in Java 8, such as `forEach()` and `removeIf()`. Default methods allowed these APIs to evolve while remaining backward compatible.
+
+So the primary goal was **backward compatibility**, not multiple inheritance.
+
+### Expected Follow-up Questions
+
+* What problem did default methods solve?
+* Why not use abstract classes instead?
+* How do default methods affect backward compatibility?
+
+### Common Mistakes
+
+* Saying they were introduced mainly for multiple inheritance.
+* Forgetting the backward compatibility motivation.
+
+### Interview Keywords
+
+* Java 8
+* Backward Compatibility
+* Interface Evolution
+* Default Method
+
+---
+
+# Q84. Multiple default methods conflict.
+
+### Answer
+
+If a class implements two interfaces that provide the **same default method**, Java cannot decide which implementation to use.
+
+The implementing class **must explicitly override** the conflicting method.
+
+Example:
+
+```java id="r2h7mt"
+interface A {
+    default void show() {
+        System.out.println("A");
+    }
+}
+
+interface B {
+    default void show() {
+        System.out.println("B");
+    }
+}
+
+class C implements A, B {
+
+    @Override
+    public void show() {
+        System.out.println("Resolved");
+    }
+}
+```
+
+Without overriding `show()`, the code will not compile because the JVM would face ambiguity.
+
+### Expected Follow-up Questions
+
+* Why doesn't Java choose one automatically?
+* How do you call a specific interface's default method?
+* Is this related to the Diamond Problem?
+
+### Common Mistakes
+
+* Assuming Java gives priority to the first interface.
+* Forgetting that overriding is mandatory.
+
+### Interview Keywords
+
+* Default Method
+* Interface Conflict
+* Multiple Inheritance
+* Ambiguity
+
+---
+
+# Q85. Explain diamond problem with default methods.
+
+### Answer
+
+The **Diamond Problem** occurs when a class inherits the same method from multiple parent types, creating ambiguity about which implementation should be used.
+
+With interfaces, this can happen when two interfaces define the same default method.
+
+Example:
+
+```java id="9x4nua"
+interface A {
+    default void show() {
+        System.out.println("A");
+    }
+}
+
+interface B {
+    default void show() {
+        System.out.println("B");
+    }
+}
+
+class C implements A, B {
+
+    @Override
+    public void show() {
+        A.super.show(); // or B.super.show()
+    }
+}
+```
+
+Java resolves this by requiring the implementing class to override the method. If needed, it can invoke a specific interface's implementation using `InterfaceName.super.method()`.
+
+This is one reason Java supports multiple inheritance through interfaces but not through classes.
+
+### Expected Follow-up Questions
+
+* How do you resolve the conflict?
+* What does `A.super.show()` do?
+* Why doesn't Java allow multiple class inheritance?
+
+### Common Mistakes
+
+* Thinking Java automatically picks one implementation.
+* Confusing interface conflicts with class inheritance.
+
+### Interview Keywords
+
+* Diamond Problem
+* Default Method
+* `InterfaceName.super`
+* Multiple Inheritance
+
+---
+
+# Q86. You have a class with 25 fields. How would you redesign it?
+
+### Answer
+
+I would first question whether the class has **too many responsibilities**.
+
+My approach would be:
+
+1. Check if the class violates the **Single Responsibility Principle (SRP)**.
+2. Group related fields into smaller value objects.
+3. Split unrelated responsibilities into separate classes.
+4. Use composition instead of creating a "God Object."
+5. If construction becomes complex, introduce the **Builder Pattern**.
+
+For example, instead of:
+
+```text id="x0v7pk"
+Employee
+├── Personal Details
+├── Address
+├── Salary
+├── Bank Details
+├── Emergency Contact
+```
+
+I'd redesign it as:
+
+```text id="0kq3me"
+Employee
+├── PersonalInfo
+├── Address
+├── SalaryDetails
+├── BankDetails
+├── EmergencyContact
+```
+
+This improves readability, maintainability, and testability.
+
+### Expected Follow-up Questions
+
+* Would you always split the class?
+* When would you use the Builder pattern?
+* How do you identify a God Object?
+
+### Common Mistakes
+
+* Splitting classes without understanding domain boundaries.
+* Keeping all fields in one large DTO or entity.
+
+### Interview Keywords
+
+* SRP
+* Composition
+* Value Object
+* Builder Pattern
+* God Object
+
+---
+
+# Q87. A class has over 100 methods. What problems do you foresee?
+
+### Answer
+
+A class with over 100 methods is usually a strong indication that it has **too many responsibilities**.
+
+Potential problems include:
+
+* Violation of the Single Responsibility Principle.
+* Difficult to understand and maintain.
+* Higher chance of merge conflicts.
+* Harder to unit test.
+* Increased coupling.
+* Poor readability and discoverability.
+
+I'd review the methods and group them by responsibility. Often, they can be extracted into smaller services or helper classes with well-defined responsibilities.
+
+### Expected Follow-up Questions
+
+* How would you refactor it?
+* What metrics indicate a God Class?
+* Would you use inheritance?
+
+### Common Mistakes
+
+* Judging only by the number of methods.
+* Splitting classes arbitrarily instead of by responsibility.
+
+### Interview Keywords
+
+* God Class
+* SRP
+* Maintainability
+* Refactoring
+* Coupling
+
+---
+
+# Q88. A service method accepts 15 parameters. How would you redesign it?
+
+### Answer
+
+A method with 15 parameters is difficult to read, use, and maintain.
+
+I would redesign it by:
+
+1. Grouping related parameters into domain objects or DTOs.
+2. Introducing a request object if the parameters belong to one operation.
+3. Using the Builder pattern if many parameters are optional.
+4. Validating inputs close to the request object.
+
+Instead of:
+
+```java id="j8t4vs"
+createOrder(
+    name,
+    phone,
+    address,
+    city,
+    state,
+    ...
+);
+```
+
+I'd prefer:
+
+```java id="u1s9gf"
+createOrder(CreateOrderRequest request);
+```
+
+This makes the API cleaner and easier to extend without constantly changing the method signature.
+
+### Expected Follow-up Questions
+
+* When would you use the Builder pattern?
+* Is a DTO always the right choice?
+* How do you validate such requests?
+
+### Common Mistakes
+
+* Passing unrelated parameters in one DTO.
+* Using a generic `Map<String, Object>` instead of a typed object.
+
+### Interview Keywords
+
+* Parameter Object
+* DTO
+* Builder Pattern
+* API Design
+* Maintainability
+
+---
+
+# Q89. You discover deep inheritance (7 levels). Would you keep it? Why?
+
+### Answer
+
+In most cases, **no**. A seven-level inheritance hierarchy is usually a design smell.
+
+Problems include:
+
+* Tight coupling.
+* Hard to understand behavior.
+* Difficult debugging because logic is spread across many classes.
+* Higher risk of breaking subclasses when changing parent classes.
+* Reduced flexibility.
+
+I'd first understand whether each level represents a genuine **IS-A** relationship. If not, I'd gradually refactor toward composition where it improves maintainability.
+
+I wouldn't rewrite everything immediately unless there's a business need, but I would avoid extending the hierarchy further.
+
+### Expected Follow-up Questions
+
+* Would you refactor immediately?
+* How would composition help?
+* What is the Fragile Base Class problem?
+
+### Common Mistakes
+
+* Refactoring large hierarchies without understanding their purpose.
+* Using inheritance just for code reuse.
+
+### Interview Keywords
+
+* Deep Inheritance
+* Composition
+* IS-A
+* Fragile Base Class
+* Refactoring
+
+---
+
+# Q90. You need to expose a read-only object to clients. How would you design it?
+
+### Answer
+
+The design depends on whether the object itself is mutable.
+
+If possible, I'd make the object **immutable**:
+
+* `final` class
+* `private final` fields
+* No setters
+* Defensive copies for mutable fields
+
+If the object must remain mutable internally, I'd expose a **read-only view** or return defensive copies of mutable state.
+
+For collections, for example:
+
+```java id="n7f3ly"
+public List<String> getItems() {
+    return List.copyOf(items);
+}
+```
+
+or
+
+```java id="b6z8qp"
+public List<String> getItems() {
+    return Collections.unmodifiableList(items);
+}
+```
+
+This prevents clients from modifying the object's exposed state while still allowing the owning class to manage it internally.
+
+### Expected Follow-up Questions
+
+* Why isn't `final` alone enough?
+* `Collections.unmodifiableList()` vs `List.copyOf()`?
+* When should defensive copying be used?
+
+### Common Mistakes
+
+* Returning internal mutable collections directly.
+* Assuming `final` makes objects immutable.
+
+### Interview Keywords
+
+* Immutable Object
+* Defensive Copy
+* Encapsulation
+* Read-only View
+* `List.copyOf()`
+
+# Q91. Multiple developers keep modifying shared objects causing bugs. How would you solve this?
+
+### Answer
+
+My first goal would be to **reduce shared mutable state**, because it's a common source of bugs and race conditions.
+
+Depending on the use case, I'd consider:
+
+1. Make the object immutable if possible.
+2. Avoid sharing the same object across multiple components.
+3. Use defensive copying when passing mutable objects.
+4. Restrict modifications through well-defined methods instead of public setters.
+5. If concurrent updates are required, use appropriate synchronization or concurrent data structures.
+
+For example, instead of passing the same mutable DTO across multiple services, I'd create immutable request objects or copy the object before modifying it.
+
+In production, immutability is usually the simplest and safest solution because it eliminates an entire class of concurrency issues.
+
+### Expected Follow-up Questions
+
+* Why are immutable objects thread-safe?
+* When would synchronization be required?
+* What is defensive copying?
+
+### Common Mistakes
+
+* Sharing mutable objects across multiple threads.
+* Exposing mutable collections directly.
+
+### Interview Keywords
+
+* Shared Mutable State
+* Immutability
+* Defensive Copy
+* Thread Safety
+* Race Condition
+
+---
+
+# Q92. Your `HashMap` suddenly behaves incorrectly. Where would you start debugging?
+
+### Answer
+
+I'd first verify whether the **key's `equals()` and `hashCode()` implementations are correct**, because most `HashMap` issues originate there.
+
+My debugging approach would be:
+
+1. Check whether `equals()` and `hashCode()` follow the contract.
+2. Verify the key object isn't mutable after insertion.
+3. Check whether duplicate logical keys exist.
+4. Confirm the correct key object is being used during lookup.
+5. If it's a concurrent scenario, verify whether `HashMap` is being accessed safely.
+
+For example, if a field used in `hashCode()` changes after insertion, the object may end up in a different logical bucket, causing lookups to fail.
+
+In production, mutable keys are one of the most common causes of unexpected `HashMap` behavior.
+
+### Expected Follow-up Questions
+
+* Why shouldn't mutable objects be HashMap keys?
+* How does HashMap use `equals()` and `hashCode()`?
+* When should `ConcurrentHashMap` be used?
+
+### Common Mistakes
+
+* Overriding `equals()` without `hashCode()`.
+* Modifying key fields after insertion.
+
+### Interview Keywords
+
+* HashMap
+* hashCode()
+* equals()
+* Mutable Key
+* Hash Collision
+
+---
+
+# Q93. You observe duplicate objects with same values inside `HashSet`. Possible reasons?
+
+### Answer
+
+The most likely reason is that the class does **not correctly override `equals()` and `hashCode()`**.
+
+`HashSet` determines uniqueness using both methods:
+
+* `hashCode()` finds the bucket.
+* `equals()` checks logical equality.
+
+Possible causes include:
+
+* `equals()` not overridden.
+* `hashCode()` not overridden.
+* Incorrect implementation of either method.
+* Mutable fields used in `equals()` or `hashCode()` that changed after insertion.
+
+For a `HashSet`, two logically equal objects should produce the same hash code and be equal according to `equals()`.
+
+### Expected Follow-up Questions
+
+* Why does HashSet use both methods?
+* Can hash collisions cause duplicates?
+* What happens if the key is mutable?
+
+### Common Mistakes
+
+* Overriding only one of the methods.
+* Assuming `HashSet` only checks `equals()`.
+
+### Interview Keywords
+
+* HashSet
+* equals()
+* hashCode()
+* Object Equality
+* Hash Contract
+
+---
+
+# Q94. Team frequently misuses `equals()`. How would you enforce correctness?
+
+### Answer
+
+I'd address it through both **coding standards** and **code reviews**.
+
+Some practices I follow are:
+
+* Always override `equals()` and `hashCode()` together.
+* Use the `@Override` annotation.
+* Add unit tests covering equality and hash code behavior.
+* Avoid mutable fields in equality checks whenever possible.
+* Use IDE-generated implementations as a starting point and review them carefully.
+
+During code reviews, I'd specifically check:
+
+* Equality contract.
+* Null handling.
+* Symmetry and consistency.
+* Compatibility with hash-based collections.
+
+This helps prevent subtle production bugs involving `HashMap` and `HashSet`.
+
+### Expected Follow-up Questions
+
+* What should unit tests verify?
+* Why avoid mutable fields?
+* Should IDs always be used in `equals()`?
+
+### Common Mistakes
+
+* Comparing strings with `==`.
+* Forgetting to update `hashCode()` after modifying `equals()`.
+
+### Interview Keywords
+
+* equals()
+* hashCode()
+* Code Review
+* Unit Testing
+* Equality Contract
+
+---
+
+# Q95. A class has mutable public fields. What problems may occur?
+
+### Answer
+
+Public mutable fields break encapsulation because any code can modify the object's internal state without validation.
+
+Problems include:
+
+* Invalid object state.
+* Difficult debugging.
+* Harder to enforce business rules.
+* Tight coupling.
+* Concurrency issues if shared across threads.
+
+Example:
+
+```java id="0qq0zd"
+class Account {
+    public double balance;
+}
+```
+
+Any caller can directly change `balance`, bypassing validation.
+
+A better design is to keep fields `private` and expose controlled methods for modification.
+
+### Expected Follow-up Questions
+
+* Why keep fields private?
+* How does encapsulation help?
+* What if the object is immutable?
+
+### Common Mistakes
+
+* Making entity fields public.
+* Using setters without validation.
+
+### Interview Keywords
+
+* Encapsulation
+* Data Hiding
+* Mutable State
+* Validation
+
+---
+
+# Q96. Have you ever created custom immutable classes? Where?
+
+### Answer
+
+I haven't created many completely immutable domain classes in production because most of the objects I work with are **JPA entities, MongoDB documents, or DTOs**, which are typically mutable.
+
+However, I have created immutable helper objects and configuration-style classes where the state should not change after creation. I followed standard practices like:
+
+* `final` class
+* `private final` fields
+* Constructor initialization
+* No setters
+* Defensive copying for mutable fields
+
+In general, I prefer immutability for value objects or configuration data because it simplifies reasoning about the code and avoids accidental modifications.
+
+### Expected Follow-up Questions
+
+* Why aren't JPA entities immutable?
+* Where would you prefer immutable objects?
+* What is defensive copying?
+
+### Common Mistakes
+
+* Claiming every production class should be immutable.
+* Ignoring framework requirements like JPA proxies.
+
+### Interview Keywords
+
+* Immutable Class
+* Value Object
+* DTO
+* Defensive Copy
+
+---
+
+# Q97. How do you design DTOs?
+
+### Answer
+
+I design DTOs as **simple data carriers** for communication between layers or services.
+
+Some principles I follow are:
+
+* Keep them focused on a specific API or use case.
+* Avoid business logic inside DTOs.
+* Include only the fields required by the client.
+* Use validation annotations where appropriate.
+* Keep them separate from persistence entities.
+
+In Spring Boot applications, DTOs help decouple the API contract from the database model, allowing each to evolve independently.
+
+### Expected Follow-up Questions
+
+* Why not expose entities directly?
+* Should DTOs be immutable?
+* How do you map DTOs to entities?
+
+### Common Mistakes
+
+* Putting business logic in DTOs.
+* Reusing the same DTO for unrelated APIs.
+
+### Interview Keywords
+
+* DTO
+* API Contract
+* Validation
+* Layered Architecture
+* Decoupling
+
+---
+
+# Q98. How do you design Entity classes?
+
+### Answer
+
+Entity classes represent the persistence model, so I design them around the database while keeping them maintainable.
+
+Some practices I follow are:
+
+* Model the domain accurately.
+* Keep fields `private`.
+* Use meaningful relationships.
+* Avoid exposing entities directly through REST APIs.
+* Keep business logic separate from persistence concerns where appropriate.
+* Override `equals()` and `hashCode()` carefully, especially when identity is involved.
+
+In Spring Data or JPA applications, I also avoid placing unnecessary business logic inside entities to keep them focused on persistence.
+
+### Expected Follow-up Questions
+
+* Why not expose entities through APIs?
+* Should entities be immutable?
+* How do you implement `equals()` for entities?
+
+### Common Mistakes
+
+* Returning entities directly from controllers.
+* Mixing persistence logic with API contracts.
+
+### Interview Keywords
+
+* Entity
+* Persistence Model
+* Encapsulation
+* JPA
+* Layered Architecture
+
+---
+
+# Q99. Where have you used interfaces in your project?
+
+### Answer
+
+I've primarily used interfaces to define contracts and keep components loosely coupled.
+
+Some common examples from my projects include:
+
+* Spring Data repository interfaces such as `ReactiveMongoRepository`.
+* Service interfaces with separate implementation classes.
+* Strategy-like components where multiple implementations are possible.
+* External client abstractions to simplify testing and mocking.
+
+Using interfaces makes unit testing easier because dependencies can be mocked, and implementations can be changed without affecting callers.
+
+### Expected Follow-up Questions
+
+* Why use interfaces instead of concrete classes?
+* Does Spring require interfaces?
+* How do interfaces help testing?
+
+### Common Mistakes
+
+* Creating interfaces for every class without a clear need.
+* Treating interfaces as a replacement for good design.
+
+### Interview Keywords
+
+* Interface
+* Loose Coupling
+* Dependency Injection
+* Mocking
+* ReactiveMongoRepository
+
+---
+
+# Q100. Where have you used abstract classes?
+
+### Answer
+
+In my experience, I've used **interfaces much more frequently than abstract classes**.
+
+I've used abstract classes when multiple related classes shared common implementation or state. For example, a base component that provides common utility methods or shared initialization while allowing subclasses to implement specific behavior.
+
+For most service-layer designs in Spring Boot, I prefer interfaces because they provide more flexibility and align well with dependency injection.
+
+So my general approach is:
+
+* **Interface** for defining contracts.
+* **Abstract class** when there is meaningful shared implementation or common state.
+
+### Expected Follow-up Questions
+
+* Why do you prefer interfaces?
+* When is an abstract class a better choice?
+* Can an abstract class implement an interface?
+
+### Common Mistakes
+
+* Using abstract classes only for code reuse.
+* Creating inheritance hierarchies where composition would be simpler.
+
+### Interview Keywords
+
+* Abstract Class
+* Interface
+* Shared Implementation
+* Dependency Injection
+* Composition
 
