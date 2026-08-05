@@ -4478,3 +4478,1652 @@ So my general approach is:
 * Dependency Injection
 * Composition
 
+# Q101. Did inheritance ever create maintenance issues?
+
+### Answer
+
+Yes, although not because of extremely deep inheritance hierarchies. The more common issue I've seen is that a **base class becomes responsible for too many unrelated concerns**, making changes risky.
+
+Typical maintenance problems include:
+
+* A change in the parent unintentionally affects multiple subclasses.
+* Tight coupling between parent and child classes.
+* Difficulty understanding where a particular behavior is implemented.
+* Reduced flexibility when different subclasses need slightly different behavior.
+
+In my experience, we've generally preferred **composition and dependency injection** over inheritance, especially in Spring Boot applications. That keeps components loosely coupled and easier to test.
+
+### Expected Follow-up Questions
+
+* What is the Fragile Base Class problem?
+* Why is composition preferred?
+* When is inheritance still appropriate?
+
+### Common Mistakes
+
+* Claiming inheritance is always bad.
+* Using inheritance only for code reuse.
+
+### Interview Keywords
+
+* Composition
+* Tight Coupling
+* Fragile Base Class
+* Maintainability
+* Dependency Injection
+
+---
+
+# Q102. Have you overridden `equals()` in production? Why?
+
+### Answer
+
+Yes. I've overridden `equals()` for classes where **logical equality** was important rather than object identity.
+
+Typical use cases include:
+
+* Value objects.
+* DTOs that need equality comparisons.
+* Objects used in collections like `HashSet` or as keys in `HashMap`.
+
+Whenever I override `equals()`, I also override `hashCode()` to maintain the required contract.
+
+For JPA or persistence entities, I avoid overriding it without carefully considering object identity and lifecycle, since incorrect implementations can lead to subtle bugs.
+
+### Expected Follow-up Questions
+
+* Why must `hashCode()` also be overridden?
+* Should JPA entities override `equals()`?
+* How does `HashMap` use `equals()`?
+
+### Common Mistakes
+
+* Overriding only `equals()`.
+* Using mutable fields for equality.
+
+### Interview Keywords
+
+* equals()
+* Logical Equality
+* hashCode()
+* Value Object
+* HashMap
+
+---
+
+# Q103. Have you overridden `hashCode()`? Where?
+
+### Answer
+
+Yes. Whenever I override `equals()`, I also override `hashCode()`.
+
+Typical scenarios include:
+
+* Value objects.
+* DTOs requiring logical equality.
+* Classes stored in `HashSet`.
+* Classes used as keys in `HashMap`.
+
+The implementation should use the same fields that participate in `equals()` so both methods remain consistent.
+
+For example:
+
+```java id="v4g2mk"
+@Override
+public int hashCode() {
+    return Objects.hash(id, name);
+}
+```
+
+This ensures hash-based collections behave correctly.
+
+### Expected Follow-up Questions
+
+* Why should `equals()` and `hashCode()` use the same fields?
+* What happens if the contract is broken?
+* Why avoid mutable fields?
+
+### Common Mistakes
+
+* Using different fields in `equals()` and `hashCode()`.
+* Forgetting to update both methods together.
+
+### Interview Keywords
+
+* hashCode()
+* HashMap
+* HashSet
+* Equality Contract
+* Objects.hash()
+
+---
+
+# Q104. How do you design utility classes?
+
+### Answer
+
+I design utility classes to be **stateless** and contain only reusable helper methods.
+
+Some practices I follow are:
+
+* Declare the class `final`.
+* Make the constructor `private` to prevent instantiation.
+* Expose only `static` methods.
+* Avoid maintaining shared mutable state.
+
+Example:
+
+```java id="x7p1wd"
+public final class StringUtils {
+
+    private StringUtils() {}
+
+    public static boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
+    }
+}
+```
+
+If a class requires dependencies or maintains state, I don't make it a utility class. Instead, I design it as a normal service class managed by Spring.
+
+### Expected Follow-up Questions
+
+* Why use a private constructor?
+* When should methods not be static?
+* Why make the class final?
+
+### Common Mistakes
+
+* Creating utility classes with mutable static fields.
+* Using utility classes where dependency injection is more appropriate.
+
+### Interview Keywords
+
+* Utility Class
+* Static Method
+* Stateless
+* Private Constructor
+
+---
+
+# Q105. Have you encountered memory-related bugs?
+
+### Answer
+
+Yes. I've encountered situations involving **high memory usage**, though not necessarily JVM memory leaks.
+
+One example was processing large Excel files. Initially, the implementation held more data in memory than necessary, leading to increased heap usage.
+
+We optimized the processing by:
+
+* Reducing unnecessary in-memory data.
+* Processing data more efficiently.
+* Avoiding unnecessary object creation.
+
+As a result, we significantly reduced memory consumption and improved overall performance.
+
+When investigating memory issues, I typically start by checking:
+
+* Heap usage.
+* Large collections.
+* Object creation patterns.
+* Heap dumps if necessary.
+
+### Expected Follow-up Questions
+
+* How do you analyze memory issues?
+* What is a heap dump?
+* What causes memory leaks in Java?
+
+### Common Mistakes
+
+* Saying Java cannot have memory leaks.
+* Assuming every memory issue is caused by the Garbage Collector.
+
+### Interview Keywords
+
+* Heap Usage
+* Heap Dump
+* Memory Optimization
+* Garbage Collection
+* Object Allocation
+
+---
+
+# Q106. Did mutable shared objects ever create concurrency issues?
+
+### Answer
+
+I haven't personally debugged a major production incident caused by mutable shared objects, but it's a well-known concurrency risk.
+
+To minimize such issues, I generally follow practices like:
+
+* Keeping shared objects immutable where possible.
+* Avoiding unnecessary shared mutable state.
+* Using thread-safe collections or synchronization when shared updates are required.
+* Designing request-scoped objects so they're not shared across threads.
+
+These practices reduce the likelihood of race conditions and make concurrent code easier to reason about.
+
+### Expected Follow-up Questions
+
+* Why are immutable objects thread-safe?
+* When do you use `ConcurrentHashMap`?
+* What is a race condition?
+
+### Common Mistakes
+
+* Sharing mutable state without synchronization.
+* Assuming `volatile` solves every concurrency problem.
+
+### Interview Keywords
+
+* Thread Safety
+* Shared Mutable State
+* Race Condition
+* Immutability
+* Concurrent Collections
+
+---
+
+# Q107. How do you review Java code for OOP violations?
+
+### Answer
+
+During code reviews, I look for common design issues rather than focusing only on syntax.
+
+Some things I check are:
+
+* Does the class have a single responsibility?
+* Is inheritance being used appropriately?
+* Are interfaces used where they improve flexibility?
+* Is encapsulation maintained?
+* Are mutable fields exposed?
+* Is the code unnecessarily tightly coupled?
+* Are methods and classes named clearly?
+
+I also look for large classes, long parameter lists, duplicated logic, and opportunities to improve readability without over-engineering.
+
+### Expected Follow-up Questions
+
+* What code smells do you commonly see?
+* How do you identify SRP violations?
+* When is abstraction excessive?
+
+### Common Mistakes
+
+* Focusing only on formatting.
+* Ignoring maintainability and coupling.
+
+### Interview Keywords
+
+* Code Review
+* SOLID
+* SRP
+* Encapsulation
+* Coupling
+
+---
+
+# Q108. How do you avoid tight coupling?
+
+### Answer
+
+I try to make components depend on **abstractions rather than concrete implementations**.
+
+Some common practices are:
+
+* Use interfaces where multiple implementations are possible.
+* Prefer composition over inheritance.
+* Use dependency injection instead of creating dependencies directly.
+* Keep classes focused on a single responsibility.
+* Avoid exposing implementation details through public APIs.
+
+In Spring Boot applications, dependency injection naturally helps reduce coupling because components depend on interfaces and are wired by the framework.
+
+### Expected Follow-up Questions
+
+* How does dependency injection reduce coupling?
+* Why is composition preferred?
+* What is Dependency Inversion Principle?
+
+### Common Mistakes
+
+* Instantiating dependencies using `new` inside business classes.
+* Depending directly on concrete implementations without a reason.
+
+### Interview Keywords
+
+* Loose Coupling
+* Dependency Injection
+* Interface
+* Composition
+* Dependency Inversion
+
+---
+
+# Q109. What Java feature do developers misuse the most?
+
+### Answer
+
+One feature I see misused frequently is **inheritance**.
+
+Developers sometimes use inheritance simply to reuse code, even when there isn't a genuine **IS-A** relationship. This often leads to tight coupling and difficult-to-maintain class hierarchies.
+
+Other commonly misused features include:
+
+* Excessive use of static methods for business logic.
+* Mutable public fields.
+* Overusing checked exceptions.
+* Over-engineering with unnecessary abstractions.
+
+The best approach is to choose the simplest design that satisfies the current requirements while remaining easy to extend.
+
+### Expected Follow-up Questions
+
+* Why is composition preferred?
+* When are static methods appropriate?
+* What is over-engineering?
+
+### Common Mistakes
+
+* Treating inheritance as the default reuse mechanism.
+* Creating abstractions before they're needed.
+
+### Interview Keywords
+
+* Inheritance
+* Composition
+* Over-engineering
+* Static Methods
+* Maintainability
+
+---
+
+# Q110. What Java coding standards does your team follow?
+
+### Answer
+
+Our team follows standard Java and Spring Boot coding practices focused on readability, consistency, and maintainability.
+
+Some common guidelines include:
+
+* Follow consistent naming conventions.
+* Keep classes focused on a single responsibility.
+* Prefer composition over inheritance.
+* Keep fields `private`.
+* Use constructor-based dependency injection.
+* Override `equals()` and `hashCode()` together.
+* Avoid unnecessary static state.
+* Write meaningful unit tests for business logic.
+* Keep methods small and readable.
+* Use code reviews and static analysis tools before merging changes.
+
+The exact rules vary slightly across teams, but the overall goal is to make the codebase easy to understand and maintain.
+
+### Expected Follow-up Questions
+
+* Do you use constructor injection or field injection?
+* What static analysis tools do you use?
+* What do you typically check during code reviews?
+
+### Common Mistakes
+
+* Treating coding standards as only formatting rules.
+* Ignoring consistency across the codebase.
+
+### Interview Keywords
+
+* Coding Standards
+* Code Review
+* Constructor Injection
+* Readability
+* Maintainability
+
+# Q111. Why is String immutable?
+
+### Answer
+
+`String` is immutable because it improves **security, thread safety, performance, and enables JVM optimizations**.
+
+Once a `String` object is created, its value cannot be changed. Any modification creates a new `String` object.
+
+The main reasons are:
+
+* **Security:** Strings are used for sensitive data like file paths, URLs, class names, and database credentials. If they were mutable, one part of the program could change them unexpectedly.
+* **String Pool:** Since strings cannot change, the JVM can safely share the same string literal across multiple references, reducing memory usage.
+* **Hash-based Collections:** `String` caches its hash code. Since the value never changes, the cached hash remains valid, making `HashMap` lookups faster.
+* **Thread Safety:** Immutable objects can be shared across multiple threads without synchronization.
+
+These are the primary reasons Java chose to make `String` immutable.
+
+### Expected Follow-up Questions
+
+* How does immutability improve security?
+* Why does HashMap benefit from immutable Strings?
+* What is the String Pool?
+
+### Common Mistakes
+
+* Saying immutability exists only for thread safety.
+* Ignoring String Pool and cached hash codes.
+
+### Interview Keywords
+
+* Immutability
+* String Pool
+* Cached HashCode
+* Thread Safety
+* Security
+
+---
+
+# Q112. Why is Object the root class?
+
+### Answer
+
+`Object` is the root class because Java needs a **common base type** for all objects.
+
+Having a single root class provides behavior that every object should have, such as:
+
+* `equals()`
+* `hashCode()`
+* `toString()`
+* `getClass()`
+* `wait()`
+* `notify()`
+
+This allows generic APIs and collections to work with any object.
+
+For example:
+
+```java id="6hf2zc"
+Object obj = new String("Java");
+Object num = Integer.valueOf(10);
+```
+
+Both can be treated uniformly because they inherit from `Object`.
+
+This simplifies polymorphism and enables frameworks and collections to operate on arbitrary object types.
+
+### Expected Follow-up Questions
+
+* Why don't primitive types extend Object?
+* Which Object methods are commonly overridden?
+* Why is `getClass()` final?
+
+### Common Mistakes
+
+* Saying everything in Java extends Object (primitive types do not).
+* Forgetting the role of polymorphism.
+
+### Interview Keywords
+
+* Root Class
+* Polymorphism
+* Object Hierarchy
+* Common Behavior
+
+---
+
+# Q113. Why is Java pass-by-value?
+
+### Answer
+
+Java is pass-by-value because it provides **simple, predictable, and consistent parameter passing semantics**.
+
+For object parameters, Java copies the **reference value**, not the object itself.
+
+This means:
+
+* The called method can modify the object's state.
+* It cannot change which object the caller's reference points to.
+
+Example:
+
+```java id="hqm8x5"
+void change(Employee emp) {
+    emp = new Employee();
+}
+```
+
+The caller's reference remains unchanged because only a copy of the reference was passed.
+
+If Java supported pass-by-reference, methods could replace the caller's variables directly, making code harder to understand and reason about.
+
+### Expected Follow-up Questions
+
+* Is Java pass-by-reference?
+* Why can methods modify objects then?
+* What exactly gets copied?
+
+### Common Mistakes
+
+* Saying Java uses pass-by-reference for objects.
+* Confusing reference variables with objects.
+
+### Interview Keywords
+
+* Pass-by-Value
+* Reference Copy
+* Object Reference
+* Method Parameters
+
+---
+
+# Q114. Why can't constructors be inherited?
+
+### Answer
+
+Constructors cannot be inherited because they are responsible for **initializing the object of their own class**, not providing behavior to subclasses.
+
+When creating a subclass object:
+
+* The subclass constructor is invoked.
+* It explicitly calls the parent constructor using `super()`.
+
+Example:
+
+```java id="vw8xsp"
+class Parent {
+    Parent() {}
+}
+
+class Child extends Parent {
+    Child() {
+        super();
+    }
+}
+```
+
+If constructors were inherited, it would be unclear how a parent constructor could initialize fields that exist only in the child class.
+
+Therefore, constructors participate in **constructor chaining**, not inheritance.
+
+### Expected Follow-up Questions
+
+* Why is `super()` required?
+* What happens if the parent has no default constructor?
+* Can constructors be overloaded?
+
+### Common Mistakes
+
+* Saying constructors are overridden.
+* Confusing constructor chaining with inheritance.
+
+### Interview Keywords
+
+* Constructor
+* Inheritance
+* Constructor Chaining
+* `super()`
+
+---
+
+# Q115. Why can't constructors be overridden?
+
+### Answer
+
+Constructors cannot be overridden because **overriding requires inheritance**, and constructors are **not inherited**.
+
+Overriding is a runtime polymorphism feature where a subclass replaces a parent's implementation.
+
+Constructors don't participate in polymorphism because they are executed only during object creation.
+
+Each class defines its own constructors responsible for initializing its own state.
+
+### Expected Follow-up Questions
+
+* Why aren't constructors inherited?
+* Can constructors be overloaded?
+* How is object initialization performed?
+
+### Common Mistakes
+
+* Treating constructors like normal methods.
+* Saying constructors support polymorphism.
+
+### Interview Keywords
+
+* Constructor
+* Overriding
+* Constructor Chaining
+* Object Initialization
+
+---
+
+# Q116. Why can't abstract methods be final?
+
+### Answer
+
+An abstract method defines a **contract** that subclasses must implement, whereas a `final` method **cannot be overridden**.
+
+These two concepts are contradictory.
+
+Example:
+
+```java id="gq2m7v"
+abstract void process();
+```
+
+The subclass must provide an implementation.
+
+If it were declared `final`, overriding would be prohibited, making implementation impossible.
+
+Therefore, Java does not allow an abstract method to be final.
+
+### Expected Follow-up Questions
+
+* Can an abstract class contain final methods?
+* Why can concrete methods be final?
+* Can static methods be abstract?
+
+### Common Mistakes
+
+* Confusing abstract classes with abstract methods.
+* Assuming all methods in an abstract class are abstract.
+
+### Interview Keywords
+
+* Abstract Method
+* Final Method
+* Method Overriding
+* Contract
+
+---
+
+# Q117. Why can't interface fields be mutable?
+
+### Answer
+
+All interface fields are implicitly:
+
+* `public`
+* `static`
+* `final`
+
+This means they are constants.
+
+Interfaces define **behavior contracts**, not object state.
+
+If interface fields were mutable:
+
+* Every implementing class would share the same mutable state.
+* It would introduce synchronization and consistency issues.
+* It would violate the purpose of interfaces.
+
+Therefore, Java restricts interface fields to constants.
+
+### Expected Follow-up Questions
+
+* Can interfaces have instance variables?
+* Why are interface fields static?
+* Can interfaces maintain state?
+
+### Common Mistakes
+
+* Thinking interface fields are instance variables.
+* Trying to modify interface constants.
+
+### Interview Keywords
+
+* Interface
+* Constant
+* `public static final`
+* Contract
+
+---
+
+# Q118. Why should `equals()` and `hashCode()` be consistent?
+
+### Answer
+
+They must be consistent because hash-based collections rely on both methods to locate objects correctly.
+
+The contract states:
+
+> If two objects are equal according to `equals()`, they **must** have the same `hashCode()`.
+
+For example, `HashMap` works as follows:
+
+1. Uses `hashCode()` to locate the bucket.
+2. Uses `equals()` to find the correct object within that bucket.
+
+If the contract is violated:
+
+* Lookups may fail.
+* Duplicate logical objects may appear in a `HashSet`.
+* Removing entries may not work correctly.
+
+### Expected Follow-up Questions
+
+* What happens if the contract is broken?
+* Can two different objects have the same hash code?
+* Why does HashMap use both methods?
+
+### Common Mistakes
+
+* Overriding only one method.
+* Assuming hash codes are unique.
+
+### Interview Keywords
+
+* equals()
+* hashCode()
+* HashMap
+* HashSet
+* Equality Contract
+
+---
+
+# Q119. Why should mutable objects rarely be keys in HashMap?
+
+### Answer
+
+Mutable objects should rarely be used as `HashMap` keys because changing a field involved in `equals()` or `hashCode()` after insertion can make the key unreachable.
+
+Example:
+
+```java id="s7jk0r"
+Map<Employee, String> map = new HashMap<>();
+
+Employee emp = new Employee(1);
+map.put(emp, "Developer");
+
+// Later
+emp.setId(2);
+```
+
+If `id` is used in `hashCode()`, the object's hash changes after insertion.
+
+As a result:
+
+* `map.get(emp)` may return `null`.
+* Removing the key may fail.
+* The entry still exists but is stored in the bucket computed using the old hash code.
+
+This is why immutable objects like `String` make excellent `HashMap` keys.
+
+### Expected Follow-up Questions
+
+* Why is String a good HashMap key?
+* How does HashMap locate keys?
+* Can mutable keys ever be used safely?
+
+### Common Mistakes
+
+* Modifying key fields after insertion.
+* Using mutable business objects as keys without considering equality.
+
+### Interview Keywords
+
+* HashMap
+* Mutable Key
+* hashCode()
+* equals()
+* Immutable Key
+
+---
+
+# Q120. Why is composition preferred over inheritance?
+
+### Answer
+
+Composition is generally preferred because it provides **better flexibility, lower coupling, and easier maintenance**.
+
+With composition:
+
+* Behavior is built by combining objects.
+* Dependencies can be replaced independently.
+* Classes are easier to test.
+* Changes in one component have less impact on others.
+
+Inheritance is appropriate only when there is a genuine **IS-A** relationship.
+
+For example, Spring favors composition through dependency injection instead of deep inheritance hierarchies.
+
+A good rule of thumb is:
+
+* Use **inheritance** for specialization.
+* Use **composition** for code reuse and collaboration.
+
+### Expected Follow-up Questions
+
+* What problems does inheritance create?
+* What is the HAS-A relationship?
+* When is inheritance the right choice?
+
+### Common Mistakes
+
+* Using inheritance solely for code reuse.
+* Creating deep inheritance hierarchies.
+
+### Interview Keywords
+
+* Composition
+* Inheritance
+* Loose Coupling
+* HAS-A
+* Dependency Injection
+
+# Q121. Abstract class vs Interface. When would you choose each?
+
+### Answer
+
+I choose an **interface** when I want to define a **contract**, and an **abstract class** when multiple related classes share common implementation or state.
+
+| Interface                     | Abstract Class                  |
+| ----------------------------- | ------------------------------- |
+| Defines a contract            | Provides partial implementation |
+| Supports multiple inheritance | Single inheritance              |
+| No instance state             | Can have instance variables     |
+| Best for loose coupling       | Best for shared behavior        |
+
+**I generally follow this rule:**
+
+* Use an **interface** for services, strategies, repositories, or APIs where multiple implementations are possible.
+* Use an **abstract class** when subclasses genuinely share state or reusable implementation.
+
+In Spring Boot applications, I mostly use interfaces because they work well with dependency injection and keep components loosely coupled.
+
+### Expected Follow-up Questions
+
+* Why does Spring prefer interfaces?
+* Can an abstract class implement an interface?
+* What changed in Java 8 interfaces?
+
+### Common Mistakes
+
+* Using abstract classes only for code reuse.
+* Creating interfaces when only one implementation will ever exist without a clear reason.
+
+### Interview Keywords
+
+* Interface
+* Abstract Class
+* Loose Coupling
+* Dependency Injection
+* Contract
+
+---
+
+# Q122. Inheritance vs Composition.
+
+### Answer
+
+I generally prefer **composition** over inheritance unless there's a clear **IS-A** relationship.
+
+| Inheritance            | Composition                 |
+| ---------------------- | --------------------------- |
+| IS-A relationship      | HAS-A relationship          |
+| Tight coupling         | Loose coupling              |
+| Compile-time hierarchy | Flexible object composition |
+| Harder to modify       | Easier to extend and test   |
+
+**Use inheritance when:**
+
+* The child truly specializes the parent.
+* Shared behavior naturally belongs in the base class.
+
+**Use composition when:**
+
+* Reusing functionality.
+* Combining behaviors.
+* Wanting flexibility and easier testing.
+
+In enterprise applications, frameworks like Spring encourage composition through dependency injection rather than deep inheritance hierarchies.
+
+### Expected Follow-up Questions
+
+* Why is composition preferred?
+* What is the Fragile Base Class problem?
+* Give an example of HAS-A.
+
+### Common Mistakes
+
+* Using inheritance for simple code reuse.
+* Creating deep inheritance hierarchies.
+
+### Interview Keywords
+
+* Composition
+* Inheritance
+* HAS-A
+* IS-A
+* Loose Coupling
+
+---
+
+# Q123. Mutable object vs Immutable object.
+
+### Answer
+
+The choice depends on whether the object's state is expected to change.
+
+| Mutable                              | Immutable                        |
+| ------------------------------------ | -------------------------------- |
+| State can change                     | State cannot change              |
+| Requires synchronization when shared | Naturally thread-safe            |
+| Usually fewer object allocations     | Creates new objects on updates   |
+| Better for frequently changing state | Better for shared/read-only data |
+
+I prefer **immutable objects** for:
+
+* Value objects.
+* Configuration.
+* Shared data.
+* Multi-threaded scenarios.
+
+I use **mutable objects** when:
+
+* The state naturally changes, such as entities, DTOs, or builders.
+
+The goal is to balance safety with performance rather than making everything immutable.
+
+### Expected Follow-up Questions
+
+* Why are immutable objects thread-safe?
+* Why aren't JPA entities immutable?
+* What are defensive copies?
+
+### Common Mistakes
+
+* Assuming everything should be immutable.
+* Forgetting defensive copies for mutable fields.
+
+### Interview Keywords
+
+* Immutability
+* Thread Safety
+* Mutable State
+* Defensive Copy
+
+---
+
+# Q124. Primitive vs Wrapper.
+
+### Answer
+
+I use **primitive types** when I need better performance and memory efficiency, and **wrapper classes** when working with objects or APIs that require them.
+
+| Primitive          | Wrapper                   |
+| ------------------ | ------------------------- |
+| Faster             | Slightly slower           |
+| Less memory        | More memory               |
+| Cannot be `null`   | Can be `null`             |
+| No utility methods | Utility methods available |
+
+I typically use:
+
+* **Primitives** in performance-sensitive code and calculations.
+* **Wrappers** in DTOs, entities, collections, and generic APIs because they support `null` and work with Generics.
+
+### Expected Follow-up Questions
+
+* What is autoboxing?
+* Can wrappers cause `NullPointerException`?
+* Why do collections require wrappers?
+
+### Common Mistakes
+
+* Using wrappers unnecessarily in tight loops.
+* Forgetting auto-unboxing can throw `NullPointerException`.
+
+### Interview Keywords
+
+* Primitive
+* Wrapper
+* Autoboxing
+* Generics
+* Nullable
+
+---
+
+# Q125. Static methods vs Instance methods.
+
+### Answer
+
+I use **static methods** for stateless utility behavior and **instance methods** when behavior depends on object state.
+
+| Static Method                           | Instance Method                             |
+| --------------------------------------- | ------------------------------------------- |
+| Belongs to class                        | Belongs to object                           |
+| No `this` reference                     | Has `this` reference                        |
+| Cannot directly access instance members | Can access both instance and static members |
+| No runtime polymorphism                 | Supports runtime polymorphism               |
+
+Examples:
+
+* Static: `Math.max()`, utility methods.
+* Instance: service methods that use object state.
+
+If a method depends on injected dependencies or object fields, it should be an instance method.
+
+### Expected Follow-up Questions
+
+* Why can't static methods be overridden?
+* When should methods be static?
+* Why doesn't static support polymorphism?
+
+### Common Mistakes
+
+* Making business logic static unnecessarily.
+* Using static methods where dependency injection is required.
+
+### Interview Keywords
+
+* Static Method
+* Instance Method
+* Runtime Polymorphism
+* Utility Class
+
+---
+
+# Q126. DTO vs Entity.
+
+### Answer
+
+A **DTO** is designed for data transfer, while an **Entity** represents the persistence model.
+
+| DTO                     | Entity                       |
+| ----------------------- | ---------------------------- |
+| API communication       | Database representation      |
+| No business logic       | Persistence-related behavior |
+| Independent of database | Mapped to persistence layer  |
+| Exposed to clients      | Usually not exposed directly |
+
+I avoid exposing entities directly through REST APIs because:
+
+* It tightly couples the API to the database model.
+* Internal fields may be exposed unintentionally.
+* API changes become harder to manage.
+
+Instead, I map entities to DTOs before sending responses.
+
+### Expected Follow-up Questions
+
+* Why shouldn't entities be exposed?
+* How do you map DTOs to entities?
+* Should DTOs be immutable?
+
+### Common Mistakes
+
+* Returning entities directly from controllers.
+* Using the same DTO for every API.
+
+### Interview Keywords
+
+* DTO
+* Entity
+* Layered Architecture
+* API Contract
+* Mapping
+
+---
+
+# Q127. Builder pattern vs Constructor.
+
+### Answer
+
+I use a **constructor** for simple objects with a small number of mandatory fields, and the **Builder pattern** when object creation becomes complex.
+
+| Constructor                       | Builder                                |
+| --------------------------------- | -------------------------------------- |
+| Simple and concise                | More readable for many parameters      |
+| Best for few fields               | Best for optional fields               |
+| Hard to read with many parameters | Fluent API                             |
+| Parameter order matters           | Named method calls improve readability |
+
+For example, if a class has 10 optional fields, a builder makes object creation much clearer than a constructor with many parameters.
+
+### Expected Follow-up Questions
+
+* When would you avoid the Builder pattern?
+* Is Builder slower?
+* How does Builder improve readability?
+
+### Common Mistakes
+
+* Using builders for very small classes.
+* Creating constructors with long parameter lists.
+
+### Interview Keywords
+
+* Builder Pattern
+* Constructor
+* Fluent API
+* Readability
+
+---
+
+# Q128. Factory vs Constructor.
+
+### Answer
+
+A **constructor** always creates an instance of its class, whereas a **factory method** provides more flexibility in object creation.
+
+| Constructor               | Factory Method                            |
+| ------------------------- | ----------------------------------------- |
+| Fixed object creation     | Flexible object creation                  |
+| Must return its own class | Can return subclasses or cached instances |
+| Name is fixed             | Can have meaningful names                 |
+
+Example:
+
+```java id="5z8pvt"
+Employee emp = new Employee();
+```
+
+Factory:
+
+```java id="r4j9ks"
+Employee emp = Employee.create();
+```
+
+I prefer factory methods when:
+
+* Object creation is complex.
+* Caching or singleton behavior is required.
+* Different implementations may be returned.
+
+Otherwise, constructors are simpler and perfectly adequate.
+
+### Expected Follow-up Questions
+
+* Why use a factory method?
+* What are static factory methods?
+* Can a factory return different implementations?
+
+### Common Mistakes
+
+* Using factories for every class.
+* Assuming constructors are always inferior.
+
+### Interview Keywords
+
+* Factory Method
+* Constructor
+* Static Factory
+* Object Creation
+
+---
+
+# Q129. Deep copy vs Shallow copy.
+
+### Answer
+
+A **shallow copy** duplicates the object but shares nested object references, while a **deep copy** creates copies of both the object and all nested mutable objects.
+
+| Shallow Copy                          | Deep Copy                              |
+| ------------------------------------- | -------------------------------------- |
+| Nested objects shared                 | Nested objects copied                  |
+| Faster                                | More expensive                         |
+| Lower memory usage                    | Higher memory usage                    |
+| Suitable for immutable nested objects | Suitable for independent object graphs |
+
+I use:
+
+* **Shallow copy** when shared nested state is acceptable or immutable.
+* **Deep copy** when complete independence between copies is required.
+
+### Expected Follow-up Questions
+
+* Does `clone()` perform deep copy?
+* Why is deep copy slower?
+* When is shallow copy sufficient?
+
+### Common Mistakes
+
+* Assuming `clone()` performs deep copying.
+* Forgetting nested mutable objects.
+
+### Interview Keywords
+
+* Shallow Copy
+* Deep Copy
+* Object Graph
+* Cloneable
+
+---
+
+# Q130. Public fields vs Getters/Setters.
+
+### Answer
+
+I prefer **private fields with controlled getters and setters** because they preserve encapsulation.
+
+| Public Fields                 | Getters/Setters          |
+| ----------------------------- | ------------------------ |
+| No encapsulation              | Encapsulation maintained |
+| No validation                 | Validation possible      |
+| Hard to change implementation | Easier to evolve         |
+| Any code can modify state     | Controlled access        |
+
+Example:
+
+```java id="y2n5hf"
+class Account {
+
+    private double balance;
+
+    public void deposit(double amount) {
+        if (amount > 0) {
+            balance += amount;
+        }
+    }
+
+    public double getBalance() {
+        return balance;
+    }
+}
+```
+
+Notice that I don't automatically generate setters for every field. If modifying a field requires business validation, I expose a domain-specific method like `deposit()` instead of a generic `setBalance()`.
+
+### Expected Follow-up Questions
+
+* Why not expose public fields?
+* Are getters and setters always required?
+* How does this support encapsulation?
+
+### Common Mistakes
+
+* Creating setters for every field without considering business rules.
+* Treating getters/setters as equivalent to proper encapsulation.
+
+### Interview Keywords
+
+* Encapsulation
+* Data Hiding
+* Getters
+* Setters
+* Domain Behavior
+
+# Q131. How do you design Java code that remains maintainable after five years?
+
+### Answer
+
+I focus on keeping the design **simple, loosely coupled, and easy to extend** rather than trying to predict every future requirement.
+
+Some principles I follow are:
+
+* Keep classes focused on a single responsibility.
+* Prefer composition over inheritance.
+* Depend on interfaces where multiple implementations are possible.
+* Keep methods small and readable.
+* Avoid unnecessary abstractions and over-engineering.
+* Write meaningful unit tests.
+* Use clear naming and package organization.
+
+A codebase evolves over time, so readability and maintainability are usually more valuable than clever implementations.
+
+### Expected Follow-up Questions
+
+* How do SOLID principles help?
+* How do you avoid over-engineering?
+* What role do code reviews play?
+
+### Common Mistakes
+
+* Designing for hypothetical future requirements.
+* Creating unnecessary abstractions.
+
+### Interview Keywords
+
+* Maintainability
+* SOLID
+* Composition
+* Readability
+* Loose Coupling
+
+---
+
+# Q132. What Java language features are overused in enterprise applications?
+
+### Answer
+
+Some features I commonly see overused are:
+
+* **Inheritance** for code reuse instead of composition.
+* **Static methods** for business logic, making testing and dependency injection difficult.
+* **Checked exceptions**, leading to excessive boilerplate.
+* **Generic utility classes** that grow into dumping grounds.
+* **Reflection**, when simpler alternatives exist.
+
+These features are useful when applied appropriately, but overusing them often increases complexity and reduces maintainability.
+
+### Expected Follow-up Questions
+
+* Why is inheritance overused?
+* Why avoid excessive static methods?
+* When is reflection appropriate?
+
+### Common Mistakes
+
+* Treating every reusable method as static.
+* Using inheritance as the default design choice.
+
+### Interview Keywords
+
+* Composition
+* Static Methods
+* Reflection
+* Checked Exceptions
+* Maintainability
+
+---
+
+# Q133. What Java code smells do you notice most during code reviews?
+
+### Answer
+
+Some common code smells I look for are:
+
+* Large classes with multiple responsibilities.
+* Long methods that perform several tasks.
+* Methods with too many parameters.
+* Deep inheritance hierarchies.
+* Public mutable fields.
+* Duplicate code.
+* Tight coupling between components.
+* Poor naming that hides intent.
+
+When I notice these, I usually suggest small, incremental refactorings rather than large rewrites.
+
+### Expected Follow-up Questions
+
+* Which smell is the most dangerous?
+* How do you identify SRP violations?
+* Would you always refactor immediately?
+
+### Common Mistakes
+
+* Focusing only on formatting instead of design.
+* Ignoring duplicated business logic.
+
+### Interview Keywords
+
+* Code Smell
+* SRP
+* God Class
+* Refactoring
+* Coupling
+
+---
+
+# Q134. How would you teach Java fundamentals to a junior engineer?
+
+### Answer
+
+I prefer teaching Java from **first principles**, focusing on understanding rather than memorization.
+
+My usual sequence would be:
+
+1. Java execution flow (JDK, JVM, JRE).
+2. Object-oriented programming fundamentals.
+3. Memory model (stack vs heap).
+4. Object lifecycle.
+5. Collections and equality (`equals()`/`hashCode()`).
+6. Exception handling.
+7. Concurrency basics.
+
+Along with theory, I'd encourage writing small programs to observe the behavior. Understanding *why* Java behaves a certain way is much more valuable than memorizing definitions.
+
+### Expected Follow-up Questions
+
+* Why start with JVM?
+* How do you explain memory?
+* When would you introduce Spring?
+
+### Common Mistakes
+
+* Teaching frameworks before Java fundamentals.
+* Focusing only on syntax.
+
+### Interview Keywords
+
+* JVM
+* OOP
+* Stack
+* Heap
+* Learning Path
+
+---
+
+# Q135. If you could remove one Java feature, what would it be and why?
+
+### Answer
+
+I'd choose the **`Cloneable` interface**.
+
+It has several design problems:
+
+* Performs shallow copying by default.
+* Bypasses constructors.
+* Requires handling `CloneNotSupportedException`.
+* Makes deep copying cumbersome.
+
+In modern Java, I prefer:
+
+* Copy constructors.
+* Static factory methods.
+* Builder-based copying.
+
+These approaches are more explicit, easier to understand, and less error-prone.
+
+### Expected Follow-up Questions
+
+* Why is `Cloneable` considered broken?
+* What is the preferred alternative?
+* Why does `clone()` bypass constructors?
+
+### Common Mistakes
+
+* Recommending `Cloneable` for new applications.
+* Assuming `clone()` performs deep copying.
+
+### Interview Keywords
+
+* Cloneable
+* Copy Constructor
+* Builder Pattern
+* Shallow Copy
+
+---
+
+# Q136. How do you balance readability and abstraction in Java?
+
+### Answer
+
+I try to introduce abstraction **only when it solves a real problem**.
+
+My general approach is:
+
+* Start with simple, readable code.
+* Introduce abstractions only when duplication or multiple implementations justify them.
+* Keep interfaces focused and meaningful.
+* Avoid adding layers that don't provide value.
+
+A small amount of duplication is often better than unnecessary abstraction that's difficult to understand.
+
+The goal is to make the code easy for the next developer to read and modify.
+
+### Expected Follow-up Questions
+
+* What is over-abstraction?
+* When should interfaces be introduced?
+* How do you identify unnecessary layers?
+
+### Common Mistakes
+
+* Creating interfaces before they're needed.
+* Optimizing for hypothetical future use cases.
+
+### Interview Keywords
+
+* Readability
+* Abstraction
+* YAGNI
+* Maintainability
+* Simplicity
+
+---
+
+# Q137. How do you identify over-engineering in Java code?
+
+### Answer
+
+I usually look for code that's significantly more complex than the problem requires.
+
+Common indicators include:
+
+* Multiple abstraction layers with only one implementation.
+* Factory or Builder patterns used for very simple objects.
+* Deep inheritance hierarchies.
+* Generic solutions for a single use case.
+* Excessive configuration.
+* Utility classes with unrelated responsibilities.
+
+A good question I ask during reviews is:
+
+> "Does this complexity solve a current requirement or only a hypothetical future one?"
+
+If it's only for a possible future requirement, it's often over-engineering.
+
+### Expected Follow-up Questions
+
+* What is YAGNI?
+* Can over-engineering affect performance?
+* How do you simplify existing code?
+
+### Common Mistakes
+
+* Mistaking abstraction for good design.
+* Designing for every possible future scenario.
+
+### Interview Keywords
+
+* Over-engineering
+* YAGNI
+* Simplicity
+* Refactoring
+* Maintainability
+
+---
+
+# Q138. What indicators tell you a class violates the Single Responsibility Principle?
+
+### Answer
+
+Some common indicators are:
+
+* The class has many unrelated fields.
+* It contains a large number of methods.
+* Changes to unrelated features modify the same class.
+* The class interacts with many different modules.
+* Method names suggest different responsibilities.
+* Unit tests become large and difficult to write.
+
+A class should have **one primary reason to change**. If multiple unrelated business changes affect the same class, it's usually violating SRP.
+
+### Expected Follow-up Questions
+
+* What is a God Class?
+* How do you split such a class?
+* Can SRP be applied too aggressively?
+
+### Common Mistakes
+
+* Measuring SRP only by class size.
+* Splitting classes without considering business boundaries.
+
+### Interview Keywords
+
+* SRP
+* God Class
+* Cohesion
+* Maintainability
+* Refactoring
+
+---
+
+# Q139. How do you decide whether a class should be mutable or immutable?
+
+### Answer
+
+I decide based on the role of the class and whether its state is expected to change.
+
+I prefer **immutable** classes for:
+
+* Value objects.
+* Configuration.
+* Shared data.
+* Objects frequently used across threads.
+
+I use **mutable** classes for:
+
+* Entities.
+* Builders.
+* Objects whose state naturally changes during their lifecycle.
+
+The key consideration is balancing safety, simplicity, and performance rather than following a single rule.
+
+### Expected Follow-up Questions
+
+* Why are immutable objects thread-safe?
+* Why are entities usually mutable?
+* What is defensive copying?
+
+### Common Mistakes
+
+* Trying to make every class immutable.
+* Ignoring mutable nested objects.
+
+### Interview Keywords
+
+* Immutability
+* Mutable State
+* Value Object
+* Thread Safety
+
+---
+
+# Q140. What Java design mistakes become expensive as a codebase grows?
+
+### Answer
+
+The mistakes that become most expensive over time are:
+
+* Tight coupling between modules.
+* Deep inheritance hierarchies.
+* Large classes with multiple responsibilities.
+* Public mutable state.
+* Poor package organization.
+* Over-engineering.
+* Ignoring SOLID principles.
+* Weak test coverage.
+
+These issues may not be obvious in small projects, but as the codebase grows, they significantly increase the cost of adding features, fixing bugs, and onboarding new developers.
+
+That's why I prioritize **simple, modular, and well-encapsulated designs** over overly clever solutions.
+
+### Expected Follow-up Questions
+
+* Which mistake is the hardest to fix?
+* How do you prevent tight coupling?
+* How do code reviews help?
+
+### Common Mistakes
+
+* Optimizing for short-term delivery while ignoring maintainability.
+* Treating design principles as optional in large codebases.
+
+### Interview Keywords
+
+* Maintainability
+* Loose Coupling
+* SOLID
+* Encapsulation
+* Modular Design
+
+
